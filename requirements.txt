@@ -1,0 +1,14 @@
+pyspark
+findspark
+boto3
+papermill
+pyarrow
+pandas
+langchain
+ollama
+langchain-ollama
+langchain-chroma
+weaviate-client
+langchain_community
+langchain_core
+langchain_openai
