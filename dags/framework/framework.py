@@ -155,23 +155,42 @@ class Framework(ModuleType):
             return conn
         
         @classmethod
-        def CheckSuccess(self, process_name, data_dt):
+        def CheckSuccessGroupOfProcess(self, group_process, data_dt):
             conn = Framework.Utility.GetConnection()
-            time.sleep(2)
+            time.sleep(5)
             cusor = conn.cursor() 
-            check = """
-                    select status from cntl.cntl_cfg_log
-                    where prcs_nm = %s and data_dt = %s 
-                    """
-            values1 = (process_name, data_dt)
+            placeholders = ', '.join(['%s'] * len(group_process))
+            attempt = 1
+            check_query = f"""
+                SELECT prcs_nm, status FROM cntl.cntl_cfg_log
+                WHERE prcs_nm IN ({placeholders}) AND data_dt = %s
+            """
+
+            # Flatten values into a tuple: (*group_process, data_dt)
+            values = tuple(group_process) + (data_dt,)
             while True:
-                cusor.execute(check, values1)
+                cusor.execute(check_query, values)
                 conn.commit() 
-                status = cusor.fetchall()[0][0]
-                print(status, process_name, data_dt)
-                if status == 0:
+
+
+                header_row = [i[0] for i in cusor.description]
+                data_row = cusor.fetchall() # [(),(), ...]
+                all_complete = 0
+                for hr_ind in range(len(header_row)):
+                    for dr_ind in range(len(data_row)): 
+                        if header_row[hr_ind] == 'status' and data_row[dr_ind][hr_ind] == 0:
+                            all_complete += 1
+                            print(f"attempt#{attempt} process : {data_row[dr_ind][0]} is success")
+                        elif header_row[hr_ind] == 'status' and data_row[dr_ind][hr_ind] == 1:
+                            print(f"attempt#{attempt} process : {data_row[dr_ind][0]} is running")
+                        elif header_row[hr_ind] == 'status' and data_row[dr_ind][hr_ind] == 99:
+                            raise Exception(f"Process: {data_row[dr_ind][0]} have failed")
+                print('########################################')
+                if all_complete == len(data_row):
+                    print('All tasks are complete!')
                     break
-                
+
+                attempt += 1 
                 time.sleep(10)
 
 

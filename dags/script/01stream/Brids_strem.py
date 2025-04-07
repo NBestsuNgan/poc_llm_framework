@@ -17,8 +17,8 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-def check_success(process_name, data_dt):
-    Framework.Utility.CheckSuccess(process_name, data_dt)
+def CheckSuccessGroupOfProcess(group_process, data_dt):
+    Framework.Utility.CheckSuccessGroupOfProcess(group_process, data_dt)
 
 with DAG(
     dag_id = 'Brids_strem',
@@ -34,21 +34,33 @@ with DAG(
         for prcs_grp in range(len(strem_controller.prcs_grp)):
             if strem_controller.prcs_grp_act_f[prcs_grp] != 0:
                 prcs_grp_controller = Framework.get_controller(f"{strem_controller.prcs_grp[prcs_grp]}", 'prcs_grp')
-                for prcs_nm in range(len(prcs_grp_controller.prcs_nm)):
-                    if prcs_grp_controller.prcs_act_f[prcs_nm] != 0:
-                        trigger_task = TriggerDagRunOperator(
-                            task_id=f'Trigger_{prcs_grp_controller.prcs_nm[prcs_nm]}_{prcs_grp_controller.prcs_grp[prcs_nm]}_{strem_controller.prcs_grp_prir[prcs_grp]}_{prcs_grp_controller.prcs_prir[prcs_nm]}',
-                            trigger_dag_id=prcs_grp_controller.prcs_nm[prcs_nm],
-                            dag=dag,  # Associate with the DAG strem level
-                        )
-                        trigger_tasks.append([trigger_task])
+                list_of_priority = list(dict.fromkeys(prcs_grp_controller.prcs_prir)) #[1,2]
+                for prcs_prir in list_of_priority: #[1,2]
+                    list_of_prcs_grp = []
+                    for prcs_nm in range(len(prcs_grp_controller.prcs_nm)): #[Llm_bird, Doc_bird, Llm_bird2]
+                        if prcs_grp_controller.prcs_prir[prcs_nm] == prcs_prir: #[1,1,2] = 1|2
+                            if prcs_grp_controller.prcs_act_f[prcs_nm] != 0:
+                                trigger_task = TriggerDagRunOperator(
+                                    task_id=f'Trigger_{prcs_grp_controller.prcs_nm[prcs_nm]}_{prcs_grp_controller.prcs_grp[prcs_nm]}_{strem_controller.prcs_grp_prir[prcs_grp]}_{prcs_prir}',
+                                    trigger_dag_id=prcs_grp_controller.prcs_nm[prcs_nm],
+                                    dag=dag,  # Associate with the DAG strem level
+                                )
+                                trigger_tasks.append([trigger_task])
+                                list_of_prcs_grp.append(prcs_grp_controller.prcs_nm[prcs_nm])
 
-                        check_success_task = PythonOperator(
-                            task_id=f'check_success_{prcs_grp_controller.prcs_nm[prcs_nm]}',
-                            python_callable=partial(check_success, prcs_grp_controller.prcs_nm[prcs_nm], datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)),
-                            dag=dag,
-                        )
-                        trigger_tasks.append([check_success_task])
+                    check_success_by_priority = PythonOperator(
+                        task_id=f'check_success_by_priority_{prcs_grp_controller.prcs_grp[prcs_prir-1]}_{prcs_prir}',
+                        python_callable=partial(CheckSuccessGroupOfProcess, list_of_prcs_grp, datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)),
+                        dag=dag,
+                    )
+                    trigger_tasks.append([check_success_by_priority])
+
+                check_success_group_of_process = PythonOperator(
+                    task_id=f'check_success_group_of_process_{strem_controller.prcs_grp[prcs_grp]}',
+                    python_callable=partial(CheckSuccessGroupOfProcess, prcs_grp_controller.prcs_nm, datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)),
+                    dag=dag,
+                )
+                trigger_tasks.append([check_success_group_of_process])
 
         return trigger_tasks
 
