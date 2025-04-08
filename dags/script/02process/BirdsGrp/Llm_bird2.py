@@ -53,7 +53,8 @@ with DAG(
             mkdir -p /home/jovyan/notebooks/Log_output/{controller.prcs_nm} &&
             papermill /home/jovyan/notebooks/{controller.nb_path_nm} \
             /home/jovyan/notebooks/Log_output/{controller.prcs_nm}/{controller.nb_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')} \
-            -p nb_parm '{controller.nb_parm}' 
+            -p nb_parm '{controller.nb_parm}' \
+            -p question '{controller.question}'
         "
         """
 

@@ -32,6 +32,7 @@ class Framework(ModuleType):
         calc_dt : datetime
         cron_express : str
         owner : str
+        question : str
 
         def __init__(self, args: dict, flag_type):
             if flag_type == 'strem_nm':
@@ -57,6 +58,7 @@ class Framework(ModuleType):
                 self.prcs_act_f = args['prcs_act_f']
                 self.dpnd_prcs_nm = args['dpnd_prcs_nm']
                 self.depn_act_f = args['depn_act_f']
+                self.question = args['question']
                 self.owner = args['owner']
                 self.calc_dt = croniter(args['cron_express'], datetime.now()).get_prev(datetime)
             
@@ -88,7 +90,7 @@ class Framework(ModuleType):
                                 on strem.strem_nm = prcs_grp.strem_nm 
                             left join cntl.cntl_cfg_schedule schedule
                                 on strem.strem_nm = schedule.strem_nm 
-                            where strem.strem_nm = '{flag_value}'
+                            where strem.strem_nm = '{flag_value}' and prcs_grp.act_f <> 0
                             order by prcs_grp_prir                 
                             """)
         elif flag_type == 'prcs_grp':
@@ -114,6 +116,7 @@ class Framework(ModuleType):
                             , prcs.act_f as prcs_act_f
                             , depn.dpnd_prcs_nm
                             , depn.act_f as depn_act_f
+                            , strem.question 
                             , COALESCE(strem.strem_owner, 'test-framework') as owner
                             , concat(schedule.minutes, ' ', schedule.hours, ' ', schedule.day_month, ' ', schedule.months, ' ', schedule.day_week) as cron_express
                             from cntl.cntl_cfg_prcs prcs   

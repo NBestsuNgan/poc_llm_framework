@@ -15,6 +15,8 @@ class Utility(ModuleType):
         s3 = boto3.client(
             's3',
             endpoint_url='http://minio:9000',  # Replace with your MinIO server URL
+            aws_access_key_id='minioadmin',    # Use MinIO's access key
+            aws_secret_access_key='minioadmin',# Use MinIO's secret key
             config=Config(signature_version='s3v4')
         )
         return s3
@@ -28,12 +30,12 @@ class Utility(ModuleType):
         return json_data
 
 
-    def af_read_csv(bucket_name, path_to_file, schema_registry):
+    def af_read_csv(bucket_name, path_to_file):
         s3 = Utility.register_catalog()
         response = s3.get_object(Bucket=bucket_name, Key=path_to_file)
-        csv_data = response['Body'].read().decode('utf-8')
-        df = pd.read_csv(StringIO(csv_data), on_bad_lines='skip')
-        return df
+        csv_data = response['Body'].read()#.decode('utf-8')
+        # df = pd.read_csv(StringIO(csv_data), on_bad_lines='skip')
+        return csv_data
 
     def af_read_from_staging(path_to_file):
         s3 = Utility.register_catalog()

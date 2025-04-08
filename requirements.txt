@@ -11,4 +11,6 @@ langchain-chroma
 weaviate-client
 langchain_community
 langchain_core
-langchain_openai
+fitz
+uuid
+pdfplumber
