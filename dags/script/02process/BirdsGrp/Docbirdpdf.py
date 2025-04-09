@@ -8,7 +8,7 @@ from airflow.operators.bash import BashOperator
 import subprocess
 from airflow.operators.empty import EmptyOperator
 
-controller = Framework.get_controller("Doc_bird", 'prcs_nm')
+controller = Framework.get_controller("Docbirdpdf", 'prcs_nm')
 
 default_args = {
     'owner': f"{controller.owner}-process",
@@ -17,7 +17,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id='Doc_bird',
+    dag_id='Docbirdpdf',
     default_args=default_args,
     start_date = controller.calc_dt,
     schedule_interval=None,
@@ -53,8 +53,11 @@ with DAG(
             mkdir -p /home/jovyan/notebooks/Log_output/{controller.prcs_nm} &&
             papermill /home/jovyan/notebooks/{controller.nb_path_nm} \
             /home/jovyan/notebooks/Log_output/{controller.prcs_nm}/{controller.nb_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')} \
-            -p nb_parm '{controller.nb_parm}' \
-            -p question '{controller.question}'
+            -p nb_parm '{controller.nb_parm}|{controller.sys_file_parm}' \
+            -p question '{controller.question}' \
+            -p embed_model '{controller.embed_model}' \
+            -p gen_model '{controller.gen_model}' \
+            -p collection '{controller.collection}' 
         "
         """
 

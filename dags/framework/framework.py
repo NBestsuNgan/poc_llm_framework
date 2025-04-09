@@ -22,7 +22,8 @@ class Framework(ModuleType):
         prcs_grp_act_f: list
         prcs_nm: list
         prcs_prir: list
-        prcs_typ: int
+        sys_file: str
+        sys_file_parm: str
         nb_path_nm: str
         nb_parm: str
         prcs_act_f: list
@@ -33,6 +34,9 @@ class Framework(ModuleType):
         cron_express : str
         owner : str
         question : str
+        embed_model : str
+        gen_model : str
+        collection : str
 
         def __init__(self, args: dict, flag_type):
             if flag_type == 'strem_nm':
@@ -52,7 +56,11 @@ class Framework(ModuleType):
                 self.prcs_nm = args['prcs_nm'][0]
                 self.prcs_grp = args['prcs_grp']
                 self.prcs_prir = args['prcs_prir']
-                self.prcs_typ = args['prcs_typ']
+                self.sys_file = args['sys_file']
+                self.sys_file_parm = args['sys_file_parm']
+                self.sys_file = args['embed_model']
+                self.sys_file = args['gen_model']
+                self.sys_file = args['collection']
                 self.nb_path_nm = args['nb_path_nm']
                 self.nb_parm = args['nb_parm']
                 self.prcs_act_f = args['prcs_act_f']
@@ -110,12 +118,16 @@ class Framework(ModuleType):
                             prcs.prcs_nm
                             , prcs.prcs_grp
                             , prcs.prir as prcs_prir
-                            , prcs.prcs_typ
+                            , prcs.sys_file 
+                            , prcs.embed_model 
+                            , prcs.gen_model 
+                            , prcs.collection 
                             , prcs.nb_path_nm
                             , prcs.nb_parm
                             , prcs.act_f as prcs_act_f
                             , depn.dpnd_prcs_nm
                             , depn.act_f as depn_act_f
+                            , concat(sys_file.file_type, '|', sys_file.dlm, '|', sys_file.chunk_size, '|', sys_file.overlap) as sys_file_parm
                             , strem.question 
                             , COALESCE(strem.strem_owner, 'test-framework') as owner
                             , concat(schedule.minutes, ' ', schedule.hours, ' ', schedule.day_month, ' ', schedule.months, ' ', schedule.day_week) as cron_express
@@ -128,6 +140,8 @@ class Framework(ModuleType):
                                 on prcs_grp.strem_nm = strem.strem_nm
                             left join cntl.cntl_cfg_schedule schedule
                                 on strem.strem_nm = schedule.strem_nm
+                            left join cntl.cntl_sys_fle sys_file
+                                on prcs.sys_file = sys_file.sys_nm
                             where prcs.prcs_nm = '{flag_value}'
                             """)
                        

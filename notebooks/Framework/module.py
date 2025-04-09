@@ -7,6 +7,7 @@ from io import StringIO, BytesIO
 from pyspark.sql import SparkSession
 import pyarrow.parquet as pq
 from datetime import datetime
+import weaviate
 
 
 class Utility(ModuleType):
@@ -28,14 +29,24 @@ class Utility(ModuleType):
         json_data = json.loads(response['Body'].read().decode('utf-8'))
 
         return json_data
+        
+    def registerClient():
+        client = weaviate.connect_to_custom(
+            http_host="host.docker.internal",
+            http_port=8081,
+            http_secure=False,
+            grpc_host="host.docker.internal",
+            grpc_port=50051,
+            grpc_secure=False,
+        )
+        return client
 
 
-    def af_read_csv(bucket_name, path_to_file):
+    def readFileFromMinio(bucket_name, path_to_file):
         s3 = Utility.register_catalog()
         response = s3.get_object(Bucket=bucket_name, Key=path_to_file)
-        csv_data = response['Body'].read()#.decode('utf-8')
-        # df = pd.read_csv(StringIO(csv_data), on_bad_lines='skip')
-        return csv_data
+        file_data = response['Body'].read()#.decode('utf-8')
+        return file_data
 
     def af_read_from_staging(path_to_file):
         s3 = Utility.register_catalog()
