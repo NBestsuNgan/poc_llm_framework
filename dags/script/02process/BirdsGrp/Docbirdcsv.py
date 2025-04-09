@@ -54,7 +54,6 @@ with DAG(
             papermill /home/jovyan/notebooks/{controller.nb_path_nm} \
             /home/jovyan/notebooks/Log_output/{controller.prcs_nm}/{controller.nb_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')} \
             -p nb_parm '{controller.nb_parm}|{controller.sys_file_parm}' \
-            -p question '{controller.question}' \
             -p embed_model '{controller.embed_model}' \
             -p gen_model '{controller.gen_model}' \
             -p collection '{controller.collection}' 
