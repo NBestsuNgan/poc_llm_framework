@@ -14,3 +14,7 @@ langchain_core
 fitz
 uuid
 pdfplumber
+langchain_cohere
+rank_bm25
+nltk
+langgraph
