@@ -94,6 +94,23 @@
 -  Download postgres database
    -  you need to install postgres database for using it as config and meta data control database https://www.postgresql.org/download/ 
 
+- Download Dbeaver freeware for database interface
+  - https://dbeaver.io/download/
+
+- Setup control database 
+   - create schemas as same level like picture below
+   ![schemas](resource/iamges/schemas.png "schemas")
+   - running DDL_Control_table from ```resource\DDL\DDL_Control_table.sql```
+   - running Insert data from ```resource\DDL\insert_data.sql```
+
+- Setup Apache-airflow connection with postgres database
+   ![af_connection_1](resource/iamges/af_connection_1.png "af_connection_1")
+   - Navigate to Admin --> Connection --> Add new record
+
+   ![af_connection_2](resource/iamges/af_connection_2.png "af_connection_2")
+   - fill connection detail as show.
+
+
 -  Dockerfile setup for spark-iceberg image
    -  ```docker build -t jupyter/base-notebook:latest . ```
    -  this container will act like processing and clustering unit, you can append more python module via add it into **requirements.txt** after added you need to re-build the image again.
