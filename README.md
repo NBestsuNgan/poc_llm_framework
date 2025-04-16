@@ -1,4 +1,4 @@
-# Low Code Data Distributed Processing Framework On Top Apache-Airflow
+# LLm Local Framework
 
 # Table of content
 - [Introduciton](#Introduciton)
@@ -6,27 +6,17 @@
 - [Components of Framework ](#Components-of-Framework )
 - [Set up environment](#Set-up-environment)
 - [Reference](#Reference)
-- [Unsolve Problem](#Unsolve-Problem)
 
 
 # Introduciton
-#### Definiton
- > A data processing framework is a tool that manages the transformation of data in multiple steps. These steps are typically represented as a directed acyclic graph (DAG), also known as a pipeline, workflow, or dataflow.
-
-#### What it does?
-&nbsp; Typically main role of data processing framework is to orchest workflows like when to start running the task?, what is the next task to run?, when it need to stop? these step are managed by data processing framework or we can call it in short by 'Orchestrator' or 'Framework', it really depend on people you work with will call but it doesn't matter.
-
-#### What is it benefit?
-&nbsp; Main benefit of data processing framework is centalize group of workflow together and can manage all of its in one place also scability, observabiliy etc.
-
-#### Why on top apache-airflow?
-&nbsp; Even I said that Low-code but it not really no code, every task still need to process by code somehow. Typically the apache-airflow is the code base orchrestrator which you need to re-write|copy your code every time that you want to create new task, In this project I will apply concept of control table to our data processing framework. the main benefit that we will get from apply this concept is scalability make you can replicate task which do the same step but different parameter easier and faster.
+#### Project purpose
+ > This framework was build for perform task on specific business task group like merchandise recommendation, etc. with specific framework structure pattern which will show later. the framework bring Llm into loop for extract reasoning of llm based on provided data or as we already know in the name 'RAG' also try other technique which be useful as well.
+ 
 
 # Services Use
 ![services_use](resource/iamges/services_use.png "Services Use") 
 
-&nbsp; From picture above there are 5 main services involve in this porject hosted on docker each serivces serve as different purpose but work along together. not only control table concept we will put the concept of data lakehouse, data warehouse into our project as well.
-
+&nbsp; FrFrom picture above there are 5 main services involve in this porject hosted on docker each serivces serve as different purpose but work along together.om 
 
 # Components of Framework 
 
@@ -139,11 +129,7 @@ join and much more.
 Ref for stylish design : 
    - https://www.reddit.com/r/dataengineering/comments/124wcjb/my_3rd_data_project_with_airflow_docker_postgres/
 
-Ref for iceberg OTFs annd minio docker-compose file:
-   - https://blog.min.io/a-developers-introduction-to-apache-iceberg-using-minio/
+ 
 
 
-# Unsolve Problem
--  Spark-iceberg catalog recognition: the catalog cannot recognize data in warehouse bucket make it need to register database and table every time after re-compose docker
-
-- Externaltasksensor cannot be use with TriggerDagRunOperator in apache airflow, make the Dags like PRCS_TEST_FRAMEWORK1, PRCS_TEST_FRAMEWORK2, PRCS_TEST_FRAMEWORK3 will not wait for previous Dags to complete before execute itself.
+ 
