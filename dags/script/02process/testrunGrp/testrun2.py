@@ -7,6 +7,7 @@ from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
 import subprocess
 from airflow.operators.empty import EmptyOperator
+from functools import partial
 
 controller = Framework.get_controller("testrun2", 'prcs_nm')
 
@@ -15,6 +16,9 @@ default_args = {
     'retries': 5,
     'retry_delay': timedelta(minutes=5),
 }
+
+def CheckSuccessGroupOfProcess(group_process, data_dt):
+    Framework.Utility.CheckSuccessGroupOfProcess(group_process, data_dt)
 
 with DAG(
     dag_id='testrun2',
@@ -38,6 +42,13 @@ with DAG(
                         dag=dag,  # Associate with the DAG
                     )
                     trigger_tasks.append(trigger_task)
+            
+            check_success_group_of_process = PythonOperator(
+                    task_id=f'check_success_group_of_process_trigger_dependency_{controller.dpnd_prcs_nm[dep_dag]}',
+                    python_callable=partial(CheckSuccessGroupOfProcess, controller.dpnd_prcs_nm[dep_dag], datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)),
+                    dag=dag,
+                )
+            trigger_tasks.append(check_success_group_of_process)
         return trigger_tasks
 
     container_id = Framework.Utility.GetContainerId()    

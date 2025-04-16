@@ -3,7 +3,9 @@
 # Table of content
 - [Introduciton](#Introduciton)
 - [Services Use](#Services-Use)
-- [Components of Framework ](#Components-of-Framework )
+- [Components of Framework](#Components-of-Framework)
+- [Process Flow](#process-flow)
+- [Pre-require](#pre-require)
 - [Set up environment](#Set-up-environment)
 - [Reference](#Reference)
 
@@ -16,7 +18,7 @@
 # Services Use
 ![services_use](resource/iamges/services_use.png "Services Use") 
 
-&nbsp; FrFrom picture above there are 5 main services involve in this porject hosted on docker each serivces serve as different purpose but work along together.om 
+&nbsp; From picture above there are 5 main services involve in this porject hosted on docker each serivces serve as different purpose but work along together.om 
 
 # Components of Framework 
 
@@ -24,105 +26,81 @@
 
 ![control_table](resource/iamges/control_table.png "Control table")
 
-&nbsp; Control tables have 6 control table which server different purpose
+&nbsp; Control tables have 7 control table which server different purpose
 - 1.CNTL_AF.CNTL_CFG_STREM
-   ![CNTL_CFG_STREM](resource/iamges/CNTL_CFG_STREM.png "CNTL_CFG_STREM")
+   ![CNTL_CFG_STREM](resource/iamges/cntl_strem.png "CNTL_CFG_STREM")
    - used for register strem name of workflow, by each workflow can have many process group.
 - 2.CNTL_AF.CNTL_CFG_PRCS_GRP
-   ![CNTL_CFG_PRCS_GRP](resource/iamges/CNTL_CFG_PRCS_GRP.png "CNTL_CFG_PRCS_GRP")
+   ![CNTL_CFG_PRCS_GRP](resource/iamges/cntl_prcs_grp.png "CNTL_CFG_PRCS_GRP")
    - used for register process group in a stream workflow, by each process group can have many process.
 - 3.CNTL_AF.CNTL_CFG_PRCS
-   ![CNTL_CFG_PRCS](resource/iamges/CNTL_CFG_PRCS1.png "CNTL_CFG_PRCS")
-   ![CNTL_CFG_PRCS](resource/iamges/CNTL_CFG_PRCS2.png "CNTL_CFG_PRCS")
-   - used for register process, by each process can be store in many process group
-- 4.CNTL_AF.CNTL_CFG_PRCS_DEPN
-   ![CNTL_CFG_PRCS_DEPN](resource/iamges/CNTL_CFG_PRCS_DEPN.png "CNTL_CFG_PRCS_DEPN")
+   ![CNTL_CFG_PRCS](resource/iamges/cntl_prcs.png "CNTL_CFG_PRCS")
+   - used for register process, ideally each process should store at most 1 process per process group
+- 4.CNTL_AF.CNTL_CFG_SYS_FILE
+   ![CNTL_CFG_PRCS_DEPN](resource/iamges/cntl_sys_file.png "CNTL_CFG_PRCS_DEPN")
+   - used for register process file type, by each process can have only one system file per process.
+- 5.CNTL_AF.CNTL_CFG_PRCS_DEPN
+   ![CNTL_CFG_PRCS_DEPN](resource/iamges/cntl_depn.png "CNTL_CFG_PRCS_DEPN")
    - used for register process dependency, by each process can have many depend process but cannot depend itself.
-- 5.CNTL_AF.CNTL_CFG_SCHEDULE
-   ![CNTL_CFG_SCHEDULE](resource/iamges/CNTL_CFG_SCHEDULE.png "CNTL_CFG_SCHEDULE")
+- 6.CNTL_AF.CNTL_CFG_SCHEDULE
+   ![CNTL_CFG_SCHEDULE](resource/iamges/cntl_schedule.png "CNTL_CFG_SCHEDULE")
    - used for register workflow schedule time.
-- 6.CNTL_AF.CNTL_CFG_LOG
-   ![CNTL_CFG_LOG](resource/iamges/CNTL_CFG_LOG.png "CNTL_CFG_LOG")
+- 7.CNTL_AF.CNTL_CFG_LOG
+   ![CNTL_CFG_LOG](resource/iamges/cntl_log.png "CNTL_CFG_LOG")
    - used for logging process status like sucess or error inclusive with message.
 
-### Orchestrator 
-![frameword_architecture](resource/iamges/frameword_architecture.png "frameword_architecture")
+### orchestrator
 
-&nbsp; Orchestrator(apache-airflow) is directly associate with the control table by pulling config data from control table then dynamically generate task that associate with config in control table order by process group/process task priority as shown in picture below
+ > orchestrator which reponsible by apache airflow is acting like controller who manage meta data config for each process and perform logging for call back and observability purpose by Dag in this framework will consits 2 Dag type one is stream type and another is process type, each one serve with different purpose. the stream type are focus to control running of process divide by it process group and priority. the process type reserve as exeute notebook and trigger process that it have depend with. these 2 type dag work along together to perform task in each stream with process in detail. 
 
-##### Stream Dag 
-![stream_dag](resource/iamges/stream_dag.png "stream_dag")
+   ![stream_dag](resource/iamges/stream_dag.png "stream_dag")
+   - From picture above show stream type dag that manage process in each process group and priority also in low level like process too.
 
-&nbsp; In stream dag we will divide process based on it process group and process priority 
+   ![process_dag](resource/iamges/process_dag.png "process_dag")
+   - From picture above show process type dag that have two process need to trigger before execute notebook itself.
 
-##### Process Dag
-![process_dag2](resource/iamges/process_dag2.png "process_dag2")
-
-&nbsp; In process will have two major task which is trigger it dependency and execute notebook from notebook path configuration
-
-### Processing & Clustering and Data lakehouse & Data warehouse 
-#### Datalakehouse and warehouse architecture
-![laekhouse_warehouse_architecture](resource/iamges/laekhouse_warehouse_architecture.png "Airflow UI")
-
-&nbsp; From picture above we can see that this picture consists of 3 services: 
-   -  Processing&Clustering: reponsible by <span style="color:red;">spark-iceberg</span> services by combining spark that act like processing unit and iceberg 
-      which is Open-Table-Fomat(OTFs) as a solution that leverages distributed computing and distributed object stores to 
-      provide capabilities that exceed what is possible with a Data Warehouse .
-   -  Data lakehouse: reponsible by <span style="color:red;">minio</span> act like blob files storage like amazon s3, you can store any data in any format in minio.
-   -  Data warehouse: reponsible by <span style="color:red;">oracle(PDB-->portable database)</span> act like data warehouse to store data in structural format.
+### Data Lake
+   ![data_lake](resource/iamges/data_lake.png "data_lake")
+   - From picture above show data storage used by minio as blob storage or another name call 'data lake' which can store file in various format for purpose like store output result and associate file with any process.
 
 
-
-# Data tier concept
-&nbsp; Data tier concept is most commonly use in data processing framework project, this concept can enhance data management easier by improve
-observabiliy, loging, tracking and data organization 
-
-#### Data tier1
-![framework_tier1](resource/iamges/framework_tier1.png "Airflow UI")
-
-&nbsp; tier1 of data management is for make procedure to control all process that coming to this loop, generally tier1 is defied as transform any 
-data format from various source into staging layer which format is structure format
+### Executer
+   ![jupyter_folder](resource/iamges/jupyter_folder.png "jupyter_folder")
+   - From picture above show jupyter folder that contain many of jupyter-notebook.
 
 
+   ![jupyter_notebook](resource/iamges/jupyter_notebook.png "jupyter_notebook")
+   - From the picture above show jupyter-notebook that can be triggered by apache airflow and also can receive config data tht have passing through apache airflow as well
 
-#### Data tier2
-![framework_tier2](resource/iamges/framework_tier2.png "Airflow UI")
 
-&nbsp; tier2 of data management is to transform staging layer into up tier like Dimention or Fact table, typically is to direct load data and table format from
-staging layer into Dimention or Fact table directly but we can do some transformation if need.
+### Vector Database
+   ![vector_db](resource/iamges/vector_db.jpg "vector_db")
+   - From picture above show design of data store in vector database which reponsible by weaviate. due to there no user interface for vector database unlike traditional database like oracle or hive or mysql so according to the picture we can see that data in vector database are store in 'collection' format which each collection can have many data which each one can have 'flexible properties' that can be design in various format for retrieval purpose.
 
-#### Data tier3
-![framework_tier3](resource/iamges/framework_tier3.png "Airflow UI")
+### AI Operator
+   - due to there no user interface for display like vectore database so there no picture here but it purpose of Ai operator is for communicate with jupyter-notebook, whenever llm are called by jupyter-notebook the requests will be send to the Ai operator which responsible by Ollama as Llm storage and run.
 
-&nbsp; tier3 of data management is to do some aggregation from Dimention and Fact table, you do some thing like sum, group by,
-join and much more.
+
+# Process Flow 
+![frameword_architecture](resource/iamges/Process_FLow.png "frameword_architecture")
+
+&nbsp; From picture above there are Process Flow of framework which will recieve parameter from postgres that act like config&metadata database then passing into apache airflow as a orchestrator then airflow itself will sending critical parameter as config to jupyter-notebook by jupyter-notebook will directly communicate with Ai operator like Ollama, Vector database like Weaviate and Datalake like Minio to perform task that have Llm in the loop of processing.
+
+# Pre-require
+
+- At least 16 GB ram are require for any operation system no matter window, mac, etc. because when we call llm as in local it will use our GPU/CPu in our computer as processing for Llm whcih will take around 5-7 GB ram per call.
 
 # Set up environment
--  Set up Oracle Database (PDB) for macos
-   -  follow the link to install oracle on macos, you may need to extend memory or disk usage in docker: https://www.youtube.com/watch?v=uxvoMhkKUPE
-   -  problem with restricted mode run as follow (optional)
-      - docker exec -it oracle19 bash
-      - sqlplus sys/mypassword1@localhost:1521/ORCLCDB AS SYSDBA
-      - ALTER SYSTEM DISABLE RESTRICTED SESSION;
-      - ctrl + D to exit sql mode, same with bash mode
-   - grant privilege
-      `GRANT UNLIMITED TABLESPACE TO sys`
-      
-   ***Note: you need to wait for few minute(up to 5 minutes for CDB mode and 8 minutes for PDB mode) to let the oracle finished it initialization and leave restrict mode, then you will fully connect to the database***
-
 -  Download postgres database
-   -  you need to install database for using postgres(same as oracle) https://www.postgresql.org/download/ 
-   -  after installed the image in docker compose file will do it job.
+   -  you need to install postgres database for using it as config and meta data control database https://www.postgresql.org/download/ 
 
 -  Dockerfile setup for spark-iceberg image
    -  ```docker build -t jupyter/base-notebook:latest . ```
    -  this container will act like processing and clustering unit, you can append more python module via add it into **requirements.txt** after added you need to re-build the image again.
 
-
-
-# How to start it? 
--  after the setup spark-iceberg image and oracle image already, you can simply run ```docker compose up -d ``` to start all container, the left image will automatically download to your computer.
--  build new process by using this command to create new template with variable --env script/PRCS_TEST_FRAMEWORK4.py --build ```./dags/framework/app.sh --env script/PRCS_TEST_FRAMEWORK4.py --build```
+# Start Framework
+- run ```docker compose up -d``` for detach mode and wait for image to complete it installation
+- after finish work run ```docker compose down```
 
 
 # Reference
