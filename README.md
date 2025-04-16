@@ -16,6 +16,7 @@
  
 
 # Services Use
+
 ![services_use](resource/iamges/services_use.png "Services Use") 
 
 &nbsp; From picture above there are 5 main services involve in this porject hosted on docker each serivces serve as different purpose but work along together.om 
@@ -82,6 +83,7 @@
 
 
 # Process Flow 
+
 ![Process_FLow](resource/iamges/Process_FLow.png "Process_FLow")
 
 &nbsp; From picture above there are Process Flow of framework which will recieve parameter from postgres that act like config&metadata database then passing into apache airflow as a orchestrator then airflow itself will sending critical parameter as config to jupyter-notebook by jupyter-notebook will directly communicate with Ai operator like Ollama, Vector database like Weaviate and Datalake like Minio to perform task that have Llm in the loop of processing.
