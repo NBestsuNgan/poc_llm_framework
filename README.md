@@ -105,6 +105,26 @@
    - running DDL_Control_table from ```resource\DDL\DDL_Control_table.sql```
    - running Insert data from ```resource\DDL\insert_data.sql```
 
+- Setup sql database(Window)
+   ![oracle_connection](resource/iamges/oracle_connection.png "oracle_connection")
+   - connect to oracle database as follow with password = `oracle`
+
+   ![oracle_schema1](resource/iamges/oracle_schema1.png "oracle_schema1")
+   ![oracle_schema2](resource/iamges/oracle_schema2.png "oracle_schema2")
+   - create new schema name `EDP` then grant persmission to this schema by run `ALTER USER EDP QUOTA UNLIMITED ON USERS;` at this point we can create table, insert and do some aggreation to all tables in this schema. we can do the same with other schema name
+
+- Set up Oracle Database (PDB) for Mac-os
+
+   - follow the link to install oracle on macos, you may need to extend memory or disk usage in docker: https://www.youtube.com/watch?v=uxvoMhkKUPE
+   - problem with restricted mode run as follow (optional)
+     - docker exec -it oracle19 bash
+     - sqlplus sys/mypassword1@localhost:1521/ORCLCDB AS SYSDBA
+     - ALTER SYSTEM DISABLE RESTRICTED SESSION;
+     - ctrl + D to exit sql mode, same with bash mode
+   - grant privilege GRANT UNLIMITED TABLESPACE TO sys
+   
+   ***Note: you need to wait for few minute(up to 5 minutes for CDB mode and 8 minutes for PDB mode) to let the oracle finished it initialization and leave restrict mode, then you will fully connect to the database***
+
 - Setup Apache-airflow connection with postgres database
    ![af_connection_1](resource/iamges/af_connection_1.png "af_connection_1")
    - Navigate to Admin --> Connection --> Add new record

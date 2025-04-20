@@ -172,30 +172,16 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    entrypoint:
-      # [
-      #   "/bin/bash",
-      #   "-c",
-      #   "ollama serve & sleep 5 && ollama pull deepseek-r1:7b && ollama pull mxbai-embed-large && wait",
-      # ]
-
-      # check if the model availiable or not then if it not else do nothing
-      [
-        "/bin/bash",
-        "-c",
-        "ollama serve & sleep 5 && \
-         [ -f /root/.ollama/models/deepseek-r1:7b ] || ollama pull deepseek-r1:7b && \
-         [ -f /root/.ollama/models/mxbai-embed-large ] || ollama pull mxbai-embed-large && \
-         [ -f /root/.ollama/models/nomic-embed-text ] || ollama pull nomic-embed-text && \
-         [ -f /root/.ollama/models/llama3-groq-tool-use:8b ] || ollama pull llama3-groq-tool-use:8b && \
-         wait"
-      ]
+      - ./load_models.sh:/load_models.sh
+      - ./ollama_models.txt:/ollama_models.txt
+    entrypoint: [ "/bin/bash", "/load_models.sh" ]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:11434/v1/health"]
       interval: 30s
       retries: 5
       timeout: 10s
+
 
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.30.0
@@ -244,6 +230,18 @@ services:
       llm_net:
     restart: unless-stopped
 
+  oracle-db:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oracle-xe
+    ports:
+      - "1521:1521"   # Oracle listener port
+      - "5500:5500"   # Oracle EM Express (optional)
+    environment:
+      - ORACLE_PASSWORD=oracle
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    restart: unless-stopped
+
 
 
 networks:
@@ -255,3 +253,4 @@ volumes:
   minio-data:
   ollama_data:
   weaviate_data:
+  oracle_data:
