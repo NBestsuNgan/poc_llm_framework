@@ -1,4 +1,0 @@
-deepseek-r1:7b
-mxbai-embed-large
-nomic-embed-text
-llama3-groq-tool-use:8b

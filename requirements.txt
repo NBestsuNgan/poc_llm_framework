@@ -18,3 +18,5 @@ langchain_cohere
 rank_bm25
 nltk
 langgraph
+langgraph_bigtool
+langchain-groq
