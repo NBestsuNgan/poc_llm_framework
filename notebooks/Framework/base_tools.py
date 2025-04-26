@@ -17,11 +17,12 @@ from langgraph.graph import StateGraph, START, END
 from IPython.display import Image, display
 from langgraph.graph import MessagesState
 from typing import List
+import oracledb
 
 
     
-@tool
-def connect_to_datalake():
+@staticmethod
+def register_datalake():
     """
     Connect to Data Lake Minio
 
@@ -37,8 +38,8 @@ def connect_to_datalake():
     return s3
 
 
-@tool
-def connect_to_vecterdb():
+@staticmethod
+def register_vecterdb():
     """
     Connect to Vector Database Weaviate
 
@@ -54,7 +55,16 @@ def connect_to_vecterdb():
     )
     return client
 
-@tool
+@staticmethod
+def register_oracle():
+    connection = oracledb.connect(
+        user="system",
+        password="oracle",
+        dsn="host.docker.internal:1521/XEPDB1"
+    )        
+    return connection
+    
+@staticmethod
 def read_file_from_datalake(bucket_name, path_to_file):
     """
     Read file from Data Lake Minio
@@ -66,63 +76,76 @@ def read_file_from_datalake(bucket_name, path_to_file):
     file_data = response['Body'].read()#.decode('utf-8')
     return file_data
 
-@tool
-def af_write_to_oracle(table_name, df):
-    """
-    Upsert data to Sql Database Oracle
 
-    
+@staticmethod
+def get_user_demographic() -> str:
     """
-    data_to_insert = df.collect()  
-    columns = df.columns  
-    
-    connection = Utility.register_oracle()  
-    oc = connection.cursor()
-    
-    placeholders = ", ".join([f":{i+1}" for i in range(len(columns))])
-    insert_sql = f"INSERT INTO EDP.{table_name} ({', '.join(columns)}) VALUES ({placeholders})"
-
-    data_as_tuples = [tuple(row) for row in data_to_insert]
-    
+    Execute SQL query to returns demographic infomation of user.
+    """
+    connection = register_oracle()
     try:
-        oc.executemany(insert_sql, data_as_tuples)
-        connection.commit()
-        print("Data inserted successfully!")
-        oc.close()
-        connection.close()
+        return pd.read_sql_query("""
+                    SELECT demo.*, 
+                           pc.period, 
+                           pc.latest_promotion_cr, 
+                           rt.latest_reward_type, 
+                           sdc.latest_shopping_discount_cr
+                    FROM EDP.DEMOGRAPHIC demo
+                    LEFT JOIN EDP.PROMTION_CR pc 
+                        ON demo.aeon_id = pc.aeon_id 
+                    LEFT JOIN EDP.REWARD_TYPE rt 
+                        ON demo.aeon_id = rt.aeon_id 
+                        AND pc.period = rt.period
+                    LEFT JOIN EDP.SHOPPING_DISCOUNT_CR sdc
+                        ON demo.aeon_id = sdc.aeon_id 
+                        AND pc.period = sdc.period
+                """, connection)
     except Exception as e:
-        raise(f"Error occurred: {e}")
+        connection.close()
+        return f"Error listing tables: {str(e)}"
 
-@tool
-def af_execute_to_oracle(bucket_name, script_path):
+@staticmethod
+def get_table_description() -> str:
     """
-    Execute sql script in Sql Database Oracle
-
-    
+    Execute SQL query to returns demographic infomation of user.
     """
-    connection = Utility.register_oracle()  
-    oc = connection.cursor()
-
-    s3 = Utility.register_catalog()
-    response = s3.get_object(Bucket=bucket_name, Key=script_path)
-    script = response['Body'].read().decode('utf-8')
+    connection = register_oracle()
     try:
-        statements = script.strip().split(';')
-        for stmt in statements:
-            if stmt.strip():  # Skip empty statements
-                print(f"Executing statement:\n{stmt.strip()}\n")
-                oc.execute(stmt.strip())
-        
-        # Commit changes to the database
-        connection.commit()
-
-        oc.close()
-        connection.close()
-        print("Execution Successful")
+        return pd.read_sql_query("""
+                    WITH main1 AS (
+                        SELECT
+                            c.owner || '.' || c.table_name AS TABLE_NAME,
+                            t.comments AS table_comment
+                        FROM
+                            all_tab_columns c
+                        LEFT JOIN
+                            all_col_comments col
+                            ON c.owner = col.owner
+                            AND c.table_name = col.table_name
+                            AND c.column_name = col.column_name
+                        LEFT JOIN
+                            all_tab_comments t
+                            ON c.owner = t.owner
+                            AND c.table_name = t.table_name
+                        WHERE
+                            c.owner = 'EDP'
+                    )
+                    SELECT DISTINCT * FROM main1
+                    ORDER BY table_name
+                """, connection).to_markdown()
     except Exception as e:
-        print(f"Error executing script: {e}")
+        connection.close()
+        return f"Error listing tables: {str(e)}"
 
 
-
-
-
+@staticmethod
+def get_table_info(query: str) -> str:
+    """
+    Execute SQL query to returns demographic infomation of user.
+    """
+    connection = register_oracle()
+    try:
+        return pd.read_sql_query(query, connection).to_markdown()
+    except Exception as e:
+        connection.close()
+        return f"Error listing tables: {str(e)}"

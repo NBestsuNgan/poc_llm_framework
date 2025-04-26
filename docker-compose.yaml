@@ -189,6 +189,7 @@ services:
          [ -f /root/.ollama/models/nomic-embed-text ] || ollama pull nomic-embed-text && \
          [ -f /root/.ollama/models/llama3-groq-tool-use:8b ] || ollama pull llama3-groq-tool-use:8b && \
          [ -f /root/.ollama/models/PetrosStav/gemma3-tools:4b ] || ollama pull PetrosStav/gemma3-tools:4b && \
+         [ -f /root/.ollama/models/qwen2.5:7b ] || ollama pull qwen2.5:7b && \
          wait"
       ]
     restart: unless-stopped
