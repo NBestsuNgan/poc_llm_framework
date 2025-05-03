@@ -25,3 +25,4 @@ tabulate
 python-dotenv
 langchain_google_genai 
 google-adk
+google-cloud-aiplatform[adk,agent_engines]

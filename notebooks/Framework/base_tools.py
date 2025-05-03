@@ -68,15 +68,33 @@ def register_oracle():
 def read_file_from_datalake(bucket_name, path_to_file):
     """
     Read file from Data Lake Minio
-
-    
     """
-    s3 = Utility.register_catalog()
+    s3 = register_datalake()
     response = s3.get_object(Bucket=bucket_name, Key=path_to_file)
     file_data = response['Body'].read()#.decode('utf-8')
     return file_data
 
-
+@staticmethod
+def upload_fileobj_to_datalake(file, bucket_name, path_to_file):
+    """
+    Upload file to Data Lake Minio
+    """
+    s3 = register_datalake()
+    s3.upload_fileobj(file, bucket_name, path_to_file)
+    
+    print(f"UPLOAD FILE TO S3://{bucket_name}/{path_to_file} SUCCESSFULY!")
+    
+@staticmethod
+def upload_filepath_to_datalake(file, bucket_name, path_to_file):
+    """
+    Upload file to Data Lake Minio
+    """
+    s3 = register_datalake()
+    s3.upload_file(file, bucket_name, path_to_file)
+    
+    print(f"UPLOAD FILE TO S3://{bucket_name}/{path_to_file} SUCCESSFULY!")
+ 
+    
 @staticmethod
 def get_user_demographic() -> str:
     """
