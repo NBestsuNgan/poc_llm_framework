@@ -22,3 +22,6 @@ langgraph_bigtool
 langchain-groq
 oracledb
 tabulate
+python-dotenv
+langchain_google_genai 
+google-adk

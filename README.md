@@ -61,11 +61,13 @@
    - From picture above show process type dag that have two process need to trigger before execute notebook itself.
 
 ### Data Lake
+
    ![data_lake](resource/iamges/data_lake.png "data_lake")
    - From picture above show data storage used by minio as blob storage or another name call 'data lake' which can store file in various format for purpose like store output result and associate file with any process.
 
 
 ### Executer
+
    ![jupyter_folder](resource/iamges/jupyter_folder.png "jupyter_folder")
    - From picture above show jupyter folder that contain many of jupyter-notebook.
 
@@ -75,6 +77,7 @@
 
 
 ### Vector Database
+
    ![vector_db](resource/iamges/vector_db.jpg "vector_db")
    - From picture above show design of data store in vector database which reponsible by weaviate. due to there no user interface for vector database unlike traditional database like oracle or hive or mysql so according to the picture we can see that data in vector database are store in 'collection' format which each collection can have many data which each one can have 'flexible properties' that can be design in various format for retrieval purpose.
 
@@ -101,16 +104,22 @@
 
 - Setup control database 
    - create schemas as same level like picture below
+
    ![schemas](resource/iamges/schemas.png "schemas")
+
    - running DDL_Control_table from ```resource\DDL\DDL_Control_table.sql```
    - running Insert data from ```resource\DDL\insert_data.sql```
 
 - Setup sql database(Window)
+
    ![oracle_connection](resource/iamges/oracle_connection.png "oracle_connection")
+
    - connect to oracle database as follow with password = `oracle`
 
    ![oracle_schema1](resource/iamges/oracle_schema1.png "oracle_schema1")
+
    ![oracle_schema2](resource/iamges/oracle_schema2.png "oracle_schema2")
+
    - create new schema name `EDP` then grant persmission to this schema by run `ALTER USER EDP QUOTA UNLIMITED ON USERS;` at this point we can create table, insert and do some aggreation to all tables in this schema. we can do the same with other schema name
 
 - Set up Oracle Database (PDB) for Mac-os
@@ -127,9 +136,11 @@
 
 - Setup Apache-airflow connection with postgres database
    ![af_connection_1](resource/iamges/af_connection_1.png "af_connection_1")
+
    - Navigate to Admin --> Connection --> Add new record
 
    ![af_connection_2](resource/iamges/af_connection_2.png "af_connection_2")
+   
    - fill connection detail as show.
 
 
@@ -148,5 +159,10 @@ Ref for stylish design :
 
  
 
+# ADK
+
+`venv\Scripts\Activate.ps1` for window power shell
+
+`pip install -r ../requirements.txt` for window power shell
 
  
