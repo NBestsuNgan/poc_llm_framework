@@ -17,3 +17,6 @@ notebooks/.Trash-0/
 notebooks/Log_output
 .env
 ./notebooks/venv/
+*.egg-info/
+dist/
+packaged_agent/
