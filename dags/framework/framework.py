@@ -16,14 +16,21 @@ import time
 class Framework(ModuleType):
     class Controller:
         args: Dict[str, Any]
+
         strem_nm: str
+        data_dt: str
+        go_live: str
         prcs_grp: list
         prcs_grp_prir: str
         prcs_grp_act_f: list
+        cron_express : str
+        owner : str
+
         prcs_nm: list
         prcs_prir: list
         sys_file: str
         sys_file_parm: str
+        model: list
         nb_path_nm: str
         nb_parm: str
         prcs_act_f: list
@@ -31,16 +38,15 @@ class Framework(ModuleType):
         depn_chk: int
         depn_act_f: list
         calc_dt : datetime
-        cron_express : str
-        owner : str
-        question : str
-        embed_model : str
-        gen_model : str
+        
+ 
         collection : str
 
         def __init__(self, args: dict, flag_type):
             if flag_type == 'strem_nm':
                 self.strem_nm = args['strem_nm']
+                self.data_dt = args['data_dt']
+                self.go_live = args['go_live']
                 self.prcs_grp = args['prcs_grp']
                 self.prcs_grp_prir = args['prcs_grp_prir']
                 self.prcs_grp_act_f = args['prcs_grp_act_f']
@@ -58,15 +64,14 @@ class Framework(ModuleType):
                 self.prcs_prir = args['prcs_prir']
                 self.sys_file = args['sys_file']
                 self.sys_file_parm = args['sys_file_parm']
-                self.embed_model = args['embed_model']
-                self.gen_model = args['gen_model']
-                self.collection = args['collection']
+                self.model = args['model']
                 self.nb_path_nm = args['nb_path_nm']
                 self.nb_parm = args['nb_parm']
                 self.prcs_act_f = args['prcs_act_f']
                 self.dpnd_prcs_nm = args['dpnd_prcs_nm']
                 self.depn_act_f = args['depn_act_f']
-                self.question = args['question']
+                self.data_dt = args['data_dt']
+                self.go_live = args['go_live']
                 self.owner = args['owner']
                 self.calc_dt = croniter(args['cron_express'], datetime.now()).get_prev(datetime)
             
@@ -87,7 +92,8 @@ class Framework(ModuleType):
         if flag_type == 'strem_nm':
             cusor.execute(f"""select 
                             strem.strem_nm
-                            , strem.question
+                            , strem.data_dt
+                            , strem.go_live
                             , prcs_grp.prcs_grp
                             , prcs_grp.prir as prcs_grp_prir
                             , prcs_grp.act_f as prcs_grp_act_f
@@ -119,16 +125,15 @@ class Framework(ModuleType):
                             , prcs.prcs_grp
                             , prcs.prir as prcs_prir
                             , prcs.sys_file 
-                            , prcs.embed_model 
-                            , prcs.gen_model 
-                            , prcs.collection 
+                            , prcs.model
                             , prcs.nb_path_nm
                             , prcs.nb_parm
                             , prcs.act_f as prcs_act_f
                             , depn.dpnd_prcs_nm
                             , depn.act_f as depn_act_f
                             , concat(sys_file.file_type, '|', sys_file.dlm, '|', sys_file.chunk_size, '|', sys_file.overlap) as sys_file_parm
-                            , strem.question 
+                            , strem.data_dt  
+                            , strem.go_live  
                             , COALESCE(strem.strem_owner, 'test-framework') as owner
                             , concat(schedule.minutes, ' ', schedule.hours, ' ', schedule.day_month, ' ', schedule.months, ' ', schedule.day_week) as cron_express
                             from cntl.cntl_cfg_prcs prcs   

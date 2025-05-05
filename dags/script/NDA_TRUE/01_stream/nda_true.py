@@ -9,7 +9,7 @@ from framework.framework import Framework
 import sys, os, subprocess
 from functools import partial
 
-strem_controller = Framework.get_controller("testrun", 'strem_nm')
+strem_controller = Framework.get_controller("nda_true", 'strem_nm')
 
 default_args = {
     'owner': f"{strem_controller.owner}-stream",
@@ -21,7 +21,7 @@ def CheckSuccessGroupOfProcess(group_process, data_dt):
     Framework.Utility.CheckSuccessGroupOfProcess(group_process, data_dt)
 
 with DAG(
-    dag_id = 'testrun',
+    dag_id = 'nda_true',
     default_args = default_args,
     start_date = strem_controller.calc_dt,
     schedule_interval = strem_controller.cron_express,

@@ -20,3 +20,6 @@ notebooks/Log_output
 *.egg-info/
 dist/
 packaged_agent/
+config
+plugins
+.venv

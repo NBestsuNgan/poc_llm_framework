@@ -27,3 +27,4 @@ langchain_google_genai
 google-adk==0.3.0
 google-cloud-aiplatform[adk,agent_engines,database]
 build
+graphviz

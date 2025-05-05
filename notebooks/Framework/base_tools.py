@@ -63,6 +63,7 @@ def register_oracle():
         dsn="host.docker.internal:1521/XEPDB1"
     )        
     return connection
+
     
 @staticmethod
 def read_file_from_datalake(bucket_name, path_to_file):

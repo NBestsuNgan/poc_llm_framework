@@ -9,7 +9,7 @@ import subprocess
 from airflow.operators.empty import EmptyOperator
 from functools import partial
 
-controller = Framework.get_controller("Docbirdpdf", 'prcs_nm')
+controller = Framework.get_controller("true_short_bot_agents", 'prcs_nm')
 
 default_args = {
     'owner': f"{controller.owner}-process",
@@ -21,13 +21,13 @@ def CheckSuccessGroupOfProcess(group_process, data_dt):
     Framework.Utility.CheckSuccessGroupOfProcess(group_process, data_dt)
 
 with DAG(
-    dag_id='Docbirdpdf',
+    dag_id='true_short_bot_agents',
     default_args=default_args,
     start_date = controller.calc_dt,
     schedule_interval=None,
 ) as dag:
     # false mean process not run yet
-    # true mean process not run already in speci fc condition
+    # true mean process not run already in specifc condition
     # check if process has runned? if no(false) --> check it depend and execute it --> after that 
     # insert log with status = 1 --> execute it if success update log with status = 0 else update log with status = 99
     def TriggerDependenciesProcess():
@@ -54,6 +54,11 @@ with DAG(
     container_id = Framework.Utility.GetContainerId()    
 
     def execute_notebook():
+        if controller.go_live == 1:
+            date_run = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        else:
+            date_run = datetime.strptime(controller.data_dt, "%Y-%m-%d").replace( hour=0, minute=0, second=0, microsecond=0)
+
         data_dt=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         cal_dt = datetime.now()
         server_link = "http://localhost:8888/tree/notebooks"
@@ -64,10 +69,9 @@ with DAG(
             mkdir -p /home/jovyan/notebooks/Log_output/{controller.prcs_nm} &&
             papermill /home/jovyan/notebooks/{controller.nb_path_nm} \
             /home/jovyan/notebooks/Log_output/{controller.prcs_nm}/{controller.nb_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')} \
-            -p nb_parm '{controller.nb_parm}|{controller.sys_file_parm}' \
-            -p embed_model '{controller.embed_model}' \
-            -p gen_model '{controller.gen_model}' \
-            -p collection '{controller.collection}' 
+            -p nb_parm '{controller.nb_parm}' \
+            -p date_run '{date_run}' \
+            -p model '{controller.model}' 
         "
         """
 
