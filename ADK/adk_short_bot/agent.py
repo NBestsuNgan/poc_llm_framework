@@ -2,10 +2,8 @@ from google.adk.agents import Agent
 
 from adk_short_bot.prompt import ROOT_AGENT_INSTRUCTION
 from adk_short_bot.tools import count_characters
-from google.adk.models.lite_llm import LiteLlm
 
 
-ollama_model = LiteLlm(model="ollama_chat/qwen2.5:7b")
 
 # root_agent = Agent(
 #     name = "adk_short_bot",

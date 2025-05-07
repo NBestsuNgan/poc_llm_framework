@@ -123,7 +123,7 @@ services:
     ports:
       - "8888:8888"
     volumes:
-      - ./notebooks:/home/jovyan/notebooks  # Mount a local folder for persistence
+      - ./NOTEBOOKS:/home/jovyan/notebooks  # Mount a local folder for persistence
       - ./ADK:/tmp/ADK
     environment:
       - JUPYTER_ENABLE_LAB=yes

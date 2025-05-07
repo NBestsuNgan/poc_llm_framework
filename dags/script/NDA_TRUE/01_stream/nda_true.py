@@ -24,7 +24,7 @@ with DAG(
     dag_id = 'nda_true',
     default_args = default_args,
     start_date = strem_controller.calc_dt,
-    schedule_interval = strem_controller.cron_express,
+    schedule_interval = strem_controller.cron_express if int(strem_controller.go_live) == 1 else None,
 ) as dag:    
 
 

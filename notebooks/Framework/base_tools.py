@@ -18,6 +18,11 @@ from IPython.display import Image, display
 from langgraph.graph import MessagesState
 from typing import List
 import oracledb
+import subprocess
+from pathlib import Path
+import os
+import shutil
+from botocore.config import Config
 
 
     
@@ -95,7 +100,105 @@ def upload_filepath_to_datalake(file, bucket_name, path_to_file):
     
     print(f"UPLOAD FILE TO S3://{bucket_name}/{path_to_file} SUCCESSFULY!")
  
+
+
+@staticmethod
+def register_agent(agent_path: str):
+    ADK_SOURCE_DIR = agent_path #/ADK/PKG_NAME 
+    ADK_TARGET_DIR = 'packaged_agent/' + agent_path #/packaged_agentADK/PKG_NAME 
+    PKG_NAME = agent_path.split('/')[1] #PKG_NAME 
     
+    # Step 1: Copy source folder to a clean new target location
+    SOURCE_DIR = Path("/tmp") / Path(ADK_SOURCE_DIR)
+    TARGET_DIR = Path("/tmp") / Path(ADK_TARGET_DIR)
+    
+    print("SOURCE_DIR :", SOURCE_DIR)
+    print("TARGET_DIR :", TARGET_DIR)
+    
+    #remove .env file
+    # def ignore_dotfiles(dir, files):
+    #     return [f for f in files if f.startswith('.')]
+    
+    # Remove TARGET_DIR if it already exists
+    if TARGET_DIR.exists():
+        shutil.rmtree(TARGET_DIR)
+    shutil.copytree(SOURCE_DIR, TARGET_DIR) #ignore=ignore_dotfiles
+    
+    # Step 2: Restructure into proper Python package
+    PKG_DIR = TARGET_DIR / PKG_NAME
+    DIST_DIR = TARGET_DIR / "dist"
+    
+    # Step 1: Move Python files into PKG_NAME / subfolder
+    if not PKG_DIR.exists():
+        PKG_DIR.mkdir()
+        for file in TARGET_DIR.glob("*.py"):
+            if file.name != "setup.py":
+                shutil.move(str(file), str(PKG_DIR / file.name))
+    
+    # Step 2: Move folders (like 'tools') into the package dir
+    for sub in TARGET_DIR.iterdir():
+        if sub.is_dir() and sub.name != PKG_NAME and sub.name != "dist":
+            shutil.move(str(sub), str(PKG_DIR / sub.name))
+    
+    # Step 3: Ensure __init__.py exists
+    (PKG_DIR / "__init__.py").touch(exist_ok=True)
+    
+    # Step 4: Write or overwrite setup.py
+    setup_code = f"""
+from setuptools import setup, find_packages
+
+setup(
+    name="{PKG_NAME}",
+    version="0.1.0",
+    description="",
+    packages=find_packages(),
+    include_package_data=True,
+    install_requires=[
+        "google-cloud-aiplatform[adk,agent_engines]",
+    ],
+    python_requires=">=3.8",
+)
+"""
+    with open(TARGET_DIR / "setup.py", "w") as f:
+        f.write(setup_code)
+    
+    # Step 5: Build and install the package
+    subprocess.run(["python", "-m", "build", "--outdir", str(DIST_DIR)], cwd=TARGET_DIR, check=True)
+    subprocess.run(["pip", "install", str(list(DIST_DIR.glob("*.whl"))[0])], check=True)
+
+    for fpath in DIST_DIR.glob("*"):
+        key = f"{PKG_NAME}/{fpath.name}"    
+        upload_filepath_to_datalake(str(fpath), 'datalake', f'Agent/{key}')
+        
+        print(f"☁️ Uploaded {fpath.name} to s3://datalake/Agent/{key}")
+
+    # MINIO_KEY = f"Agent/{PKG_NAME}/{PKG_NAME}-0.1.0-py3-none-any.whl" 
+    MINIO_KEY = f"Agent/{PKG_NAME}/{PKG_NAME}-0.1.0.tar.gz"
+    LOCAL_PKG_PATH = Path("/tmp/registered_agent") / Path(MINIO_KEY).name
+    
+    print("MINIO_KEY :", MINIO_KEY)
+    print("LOCAL_PKG_PATH :", LOCAL_PKG_PATH)
+    
+    # === Ensure download directory exists ===
+    LOCAL_PKG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    
+    # === Download from MinIO ===
+    s3 = register_datalake()
+    
+    print(f"⬇️  Downloading {MINIO_KEY} from MinIO...")
+    s3.download_file("datalake", MINIO_KEY, str(LOCAL_PKG_PATH))
+    print(f"✅ Downloaded to: {LOCAL_PKG_PATH}")
+    
+    # === Uninstall package if found ===
+    print(f"⛔ Uninstalling any existing versions of {PKG_NAME}...")
+    subprocess.run(["pip", "uninstall", PKG_NAME, "-y"], check=False)
+    
+    # === Install package === persistence as long as container don't force to shutdown
+    print(f"📦 Installing {LOCAL_PKG_PATH.name}...")
+    subprocess.run(["pip", "install", str(LOCAL_PKG_PATH)], check=True)
+    print("✅ Package installed.")
+    print("##############################################################################################\n\n")
+
 @staticmethod
 def get_user_demographic() -> str:
     """

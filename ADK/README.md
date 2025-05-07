@@ -1,14 +1,23 @@
-# Agent Development Kit (ADK) Crash Course
+# Agent & LLM
+
+## Table of Contents
+- [Agent Development Kit](#agent-development-kit)
+
+
+## Agent Development Kit
 
 ### Setup Environment
 
-You only need to create one virtual environment for all agent in this course. Follow these steps to set it up:
+You only need to create one virtual environment for all agent in this folder. Follow these steps to set it up:
 
 ```bash
+# cd into development environment
+cd ADK
+
 # Create virtual environment in the root directory
 python -m venv .venv
 
-# Activate (each new terminal)
+# Activate 
 # macOS/Linux:
 source .venv/bin/activate
 # Windows CMD:
@@ -20,16 +29,24 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Once set up, this single environment will work for all examples in the repository.
+Once set up, this single environment will work for all examples in the folder.
 
 ### Start using
 
 ```bash
-# cd into development environment
-cd ADK
+# Activate
+# macOS/Linux:
+source .venv/bin/activate
+# Windows CMD:
+.venv\Scripts\activate.bat
+# Windows PowerShell:
+.venv\Scripts\Activate.ps1
 
-# start adk web to communicate with agent
+# start adk web to communicate with agent in web ui
 adk web
+
+# stop web ui
+ctrl + c
 
 # once done
 deactivate
