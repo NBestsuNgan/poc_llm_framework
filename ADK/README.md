@@ -34,14 +34,6 @@ Once set up, this single environment will work for all examples in the folder.
 ### Start using
 
 ```bash
-# Activate
-# macOS/Linux:
-source .venv/bin/activate
-# Windows CMD:
-.venv\Scripts\activate.bat
-# Windows PowerShell:
-.venv\Scripts\Activate.ps1
-
 # start adk web to communicate with agent in web ui
 adk web
 

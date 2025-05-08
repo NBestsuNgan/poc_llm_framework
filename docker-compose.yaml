@@ -123,7 +123,7 @@ services:
     ports:
       - "8888:8888"
     volumes:
-      - ./NOTEBOOKS:/home/jovyan/notebooks  # Mount a local folder for persistence
+      - ./NOTEBOOKS:/home/jovyan/notebooks 
       - ./ADK:/tmp/ADK
     environment:
       - JUPYTER_ENABLE_LAB=yes
@@ -174,13 +174,6 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     entrypoint:
-      # [
-      #   "/bin/bash",
-      #   "-c",
-      #   "ollama serve & sleep 5 && ollama pull deepseek-r1:7b && ollama pull mxbai-embed-large && wait",
-      # ]
-
-      # check if the model availiable or not then if it not else do nothing
       [
         "/bin/bash",
         "-c",
@@ -205,14 +198,6 @@ services:
     image: cr.weaviate.io/semitechnologies/weaviate:1.30.0
     container_name: weaviate
     environment:
-      # - ENABLE_MODULES=text2vec-ollama
-      # - OLLAMA_URL=http://ollama:11434
-      # - WEAVIATE_HOST=0.0.0.0
-      # - QUERY_DEFAULTS_LIMIT=40
-      # - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
-      # - PERSISTENCE_DATA_PATH=/var/lib/weaviate
-      # - DEFAULT_VECTORIZER_MODULE=text2vec-ollama
-      # - CLUSTER_HOSTNAME=node1
       - QUERY_DEFAULTS_LIMIT=25
       - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
       - PERSISTENCE_DATA_PATH=/var/lib/weaviate
@@ -252,15 +237,13 @@ services:
     image: gvenzl/oracle-xe:21-slim
     container_name: oracle-xe
     ports:
-      - "1521:1521"   # Oracle listener port
-      - "5500:5500"   # Oracle EM Express (optional)
+      - "1521:1521"   
+      - "5500:5500"   
     environment:
       - ORACLE_PASSWORD=oracle
     volumes:
       - oracle_data:/opt/oracle/oradata
     restart: unless-stopped
-
-
 
 networks:
   llm_net:
