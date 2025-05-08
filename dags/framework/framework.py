@@ -3,12 +3,7 @@ from enum import Enum
 import re, sys, os, subprocess, json
 from types import ModuleType
 from typing import Dict, List, Any
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.operators.bash import BashOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from croniter import croniter 
 import time
 

@@ -2,13 +2,16 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from datetime import datetime, timedelta
-from framework.dwh import Framework
+from framework.framework import Framework
 from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
 import subprocess
 from airflow.operators.empty import EmptyOperator
+from functools import partial
+import os
 
-controller = Framework.get_controller("{{PRCS_NAME}}", 'prcs_nm')
+filename = os.path.splitext(os.path.basename(__file__))[0]
+controller = Framework.get_controller(filename, 'prcs_nm')
 
 default_args = {
     'owner': f"{controller.owner}-process",
@@ -16,8 +19,11 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
+def CheckSuccessGroupOfProcess(group_process, data_dt):
+    Framework.Utility.CheckSuccessGroupOfProcess(group_process, data_dt)
+
 with DAG(
-    dag_id='{{PRCS_NAME}}',
+    dag_id=filename,
     default_args=default_args,
     start_date = controller.calc_dt,
     schedule_interval=None,
@@ -35,37 +41,51 @@ with DAG(
                     trigger_task = TriggerDagRunOperator(
                         task_id=f'trigger_dependency_{controller.dpnd_prcs_nm[dep_dag]}',
                         trigger_dag_id=controller.dpnd_prcs_nm[dep_dag],
-                        conf={"message": "hi there3"},
                         dag=dag,  # Associate with the DAG
                     )
                     trigger_tasks.append(trigger_task)
+            
+            if len(trigger_tasks) != 0 :
+                check_success_group_of_process = PythonOperator(
+                        task_id=f'check_success_group_of_process_trigger_dependency_{controller.dpnd_prcs_nm[dep_dag]}',
+                        python_callable=partial(CheckSuccessGroupOfProcess, controller.dpnd_prcs_nm[dep_dag], datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)),
+                        dag=dag,
+                    )
+                trigger_tasks.append(check_success_group_of_process)
         return trigger_tasks
 
     container_id = Framework.Utility.GetContainerId()    
 
     def execute_notebook():
+        if controller.go_live == 1:
+            date_run = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        else:
+            date_run = datetime.strptime(controller.data_dt, "%Y-%m-%d").replace( hour=0, minute=0, second=0, microsecond=0)
+
         data_dt=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         cal_dt = datetime.now()
-        server_link = "http://localhost:8888/notebooks"
+        server_link = "http://localhost:8888/tree/notebooks"
         Framework.Utility.InsertLogProcess(controller.prcs_nm, data_dt, cal_dt, cal_dt, 1)     
 
         command = f"""
             docker exec {container_id} bash -c "
-            mkdir -p /home/iceberg/notebooks/Log_output/{controller.prcs_nm} &&
-            papermill /home/iceberg/notebooks/{controller.af_path_nm} \
-            /home/iceberg/notebooks/Log_output/{controller.prcs_nm}/{controller.af_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')} \
-            -p af_parm '{controller.af_parm}' 
+            mkdir -p /home/jovyan/notebooks/Log_output/{controller.prcs_nm} &&
+            papermill /home/jovyan/notebooks/{controller.nb_path_nm} \
+            /home/jovyan/notebooks/Log_output/{controller.prcs_nm}/{controller.nb_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')} \
+            -p nb_parm '{controller.nb_parm}' \
+            -p date_run '{date_run}' \
+            -p model '{controller.model}' 
         "
         """
 
         try:
             subprocess.run(command, shell=True, check=True)
             Framework.Utility.UpdateLogProcess(controller.prcs_nm, data_dt, cal_dt, datetime.now(), 0, f"Success run at {datetime.now()}")     
-            print(f"Success Running : {server_link}/Log_output/{controller.prcs_nm}/{controller.af_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')}")
+            print(f"Success Running : {server_link}/Log_output/{controller.prcs_nm}/{controller.nb_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')}")
         except subprocess.CalledProcessError as e:
-            Framework.Utility.UpdateLogProcess(controller.prcs_nm, data_dt, cal_dt, datetime.now(), 99, f"{server_link}/{controller.af_path_nm}")     
-            raise Exception(f"{e} \nFailed to run, Log-Error-Path:  {server_link}/Log_output/{controller.prcs_nm}/{controller.af_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')} \
-                            \n Primitive-Path: {server_link}/{controller.af_path_nm}")
+            Framework.Utility.UpdateLogProcess(controller.prcs_nm, data_dt, cal_dt, datetime.now(), 99, f"{server_link}/{controller.nb_path_nm}")     
+            raise Exception(f"{e} \nFailed to run, Log-Error-Path:  {server_link}/Log_output/{controller.prcs_nm}/{controller.nb_path_nm.split('/')[-1].replace('.ipynb','_executed.ipynb')} \
+                            \n Primitive-Path: {server_link}/{controller.nb_path_nm}")
 
     ExecuteNotebook = PythonOperator(
         task_id='ExecuteNotebook',

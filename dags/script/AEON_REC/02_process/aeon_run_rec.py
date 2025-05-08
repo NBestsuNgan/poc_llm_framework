@@ -8,8 +8,10 @@ from airflow.operators.bash import BashOperator
 import subprocess
 from airflow.operators.empty import EmptyOperator
 from functools import partial
+import os
 
-controller = Framework.get_controller("aeon_run_rec", 'prcs_nm')
+filename = os.path.splitext(os.path.basename(__file__))[0]
+controller = Framework.get_controller(filename, 'prcs_nm')
 
 default_args = {
     'owner': f"{controller.owner}-process",
@@ -21,7 +23,7 @@ def CheckSuccessGroupOfProcess(group_process, data_dt):
     Framework.Utility.CheckSuccessGroupOfProcess(group_process, data_dt)
 
 with DAG(
-    dag_id='aeon_run_rec',
+    dag_id=filename,
     default_args=default_args,
     start_date = controller.calc_dt,
     schedule_interval=None,
@@ -42,6 +44,7 @@ with DAG(
                         dag=dag,  # Associate with the DAG
                     )
                     trigger_tasks.append(trigger_task)
+            
             if len(trigger_tasks) != 0 :
                 check_success_group_of_process = PythonOperator(
                         task_id=f'check_success_group_of_process_trigger_dependency_{controller.dpnd_prcs_nm[dep_dag]}',

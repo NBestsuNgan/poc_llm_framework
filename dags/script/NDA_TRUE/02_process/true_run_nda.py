@@ -8,8 +8,10 @@ from airflow.operators.bash import BashOperator
 import subprocess
 from airflow.operators.empty import EmptyOperator
 from functools import partial
+import os
 
-controller = Framework.get_controller("true_run_nda", 'prcs_nm')
+filename = os.path.splitext(os.path.basename(__file__))[0]
+controller = Framework.get_controller(filename, 'prcs_nm')
 
 default_args = {
     'owner': f"{controller.owner}-process",
@@ -21,7 +23,7 @@ def CheckSuccessGroupOfProcess(group_process, data_dt):
     Framework.Utility.CheckSuccessGroupOfProcess(group_process, data_dt)
 
 with DAG(
-    dag_id='true_run_nda',
+    dag_id=filename,
     default_args=default_args,
     start_date = controller.calc_dt,
     schedule_interval=None,
