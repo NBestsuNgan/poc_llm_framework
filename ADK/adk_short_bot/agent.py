@@ -3,10 +3,18 @@ from google.adk.models.lite_llm import LiteLlm
 
 from adk_short_bot.prompt import ROOT_AGENT_INSTRUCTION
 from adk_short_bot.tools import count_characters
+import platform
+import os
 
 
-ollama_model = LiteLlm(model="ollama_chat/qwen2.5:7b")
+host = "localhost"
+if "linux" in platform.system().lower() and os.path.exists("/.dockerenv"):
+    host = "host.docker.internal"
 
+OLLAMA_BASE_URL = f"http://{host}:11434"
+
+ollama_model = LiteLlm(model="ollama_chat/qwen2.5:7b", base_url=OLLAMA_BASE_URL)
+print("################################################## using ollama ###########################################################")
 
 root_agent = Agent(
     name = "adk_short_bot",
