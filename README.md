@@ -113,11 +113,21 @@ docker compose up -d
 
 ### 5. Set Up Control Database
 
-- Create schemas as shown:
+- Connect to Oracle using the follwing configuration: 
+
+```
+Host: localhost
+Port: 5432
+Database: airflow
+Username: airflow
+Password: airflow
+```
+
+- Create schemas `cntl` as shown:
 
   ![schemas](resource/iamges/main/schemas.png "Schemas")
 
-- Run these following query in postgress database:
+- Run these following query in postgress database to create table and insert sample stream & process:
   - `DATABASE&DATALAKE/DDL/DDL_Control_table.sql`
   - `DATABASE&DATALAKE/DDL/insert_data.sql`
 
@@ -127,9 +137,20 @@ docker compose up -d
 
 #### 6.1 (Windows)
 
-- Connect to Oracle using the password: `oracle`
+- Connect to Oracle using the follwing configuration: 
+
+```
+Host: localhost
+Port: 1521
+Database: XEPDB1
+Username: system
+Password: oracle
+Role: Normal
+```
 
   ![oracle_connection](resource/iamges/main/oracle_connection.png "Oracle Connection")
+
+- Nav to Schemas and select `Create New schema` then create Schema name `EDP`
 
   ![oracle_schema1](resource/iamges/main/oracle_schema1.png "Oracle Schema 1")
 
