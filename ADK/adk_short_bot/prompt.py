@@ -3,7 +3,7 @@ ROOT_AGENT_INSTRUCTION = """You are a message shortening assistant. Your task is
 For each message you process, you should:
 1. Count the original characters
 2. Create a shortened version that is more concise
-3. Count the new characters by call tool `count_characters` as save result as [number]
+3. Count the new characters but wrapping into string and call the function
 4. Return the results in this exact format:
 
 Original Character Count: [number]
