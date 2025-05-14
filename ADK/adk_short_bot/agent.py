@@ -7,28 +7,37 @@ import platform
 import os
 from datetime import datetime
 
-# host = "localhost"
-# if "linux" in platform.system().lower() and os.path.exists("/.dockerenv"):
-#     host = "host.docker.internal"
 
-# OLLAMA_BASE_URL = f"http://{host}:11434"
+if "linux" in platform.system().lower() and os.path.exists("/.dockerenv"):
+    host = "host.docker.internal"
+    OLLAMA_BASE_URL = f"http://{host}:11434"
+    ollama_model = LiteLlm(model="ollama_chat/qwen2.5:7b", base_url=OLLAMA_BASE_URL) #openai ollama_chat
 
-# ollama_model = LiteLlm(model="ollama_chat/llama3-groq-tool-use:8b", base_url=OLLAMA_BASE_URL)
+    print("host", host)
+    print("model", ollama_model)
+    print("ROOT_AGENT_INSTRUCTION", ROOT_AGENT_INSTRUCTION)
 
-# print(f"########################################## llama3-groq-tool-use:8b latest update {datetime.now()} ######################################################")
+    root_agent = Agent(
+        name = "adk_short_bot",
+        model = ollama_model,
+        description="A bot that shortens messages while maintaining their core meaning",
+        instruction=ROOT_AGENT_INSTRUCTION,
+        # tools=[count_characters],
+    )
 
-# root_agent = Agent(
-#     name = "adk_short_bot",
-#     model = ollama_model,
-#     description="A bot that shortens messages while maintaining their core meaning",
-#     instruction=ROOT_AGENT_INSTRUCTION,
-#     tools=[count_characters],
-# )
+else:
+    host = "localhost"
+    OLLAMA_BASE_URL = f"http://{host}:11434"
+    ollama_model = LiteLlm(model="ollama_chat/llama3-groq-tool-use:8b", base_url=OLLAMA_BASE_URL)
 
-root_agent = Agent(
-    name="adk_short_bot",
-    model="gemini-2.0-flash",
-    description="A bot that shortens messages while maintaining their core meaning",
-    instruction=ROOT_AGENT_INSTRUCTION,
-    tools=[count_characters],
-)
+    print("host", host)
+    print("model", ollama_model)
+    print("ROOT_AGENT_INSTRUCTION", ROOT_AGENT_INSTRUCTION)
+
+    root_agent = Agent(
+        name = "adk_short_bot",
+        model = ollama_model,
+        description="A bot that shortens messages while maintaining their core meaning",
+        instruction=ROOT_AGENT_INSTRUCTION,
+        tools=[count_characters],
+    )

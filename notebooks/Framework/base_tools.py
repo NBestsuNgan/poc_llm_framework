@@ -199,65 +199,7 @@ setup(
     print("✅ Package installed.")
     print("##############################################################################################\n\n")
 
-@staticmethod
-def get_user_demographic() -> str:
-    """
-    Execute SQL query to returns demographic infomation of user.
-    """
-    connection = register_oracle()
-    try:
-        return pd.read_sql_query("""
-                    SELECT demo.*, 
-                           pc.period, 
-                           pc.latest_promotion_cr, 
-                           rt.latest_reward_type, 
-                           sdc.latest_shopping_discount_cr
-                    FROM EDP.DEMOGRAPHIC demo
-                    LEFT JOIN EDP.PROMTION_CR pc 
-                        ON demo.aeon_id = pc.aeon_id 
-                    LEFT JOIN EDP.REWARD_TYPE rt 
-                        ON demo.aeon_id = rt.aeon_id 
-                        AND pc.period = rt.period
-                    LEFT JOIN EDP.SHOPPING_DISCOUNT_CR sdc
-                        ON demo.aeon_id = sdc.aeon_id 
-                        AND pc.period = sdc.period
-                """, connection)
-    except Exception as e:
-        connection.close()
-        return f"Error listing tables: {str(e)}"
 
-@staticmethod
-def get_table_description() -> str:
-    """
-    Execute SQL query to returns demographic infomation of user.
-    """
-    connection = register_oracle()
-    try:
-        return pd.read_sql_query("""
-                    WITH main1 AS (
-                        SELECT
-                            c.owner || '.' || c.table_name AS TABLE_NAME,
-                            t.comments AS table_comment
-                        FROM
-                            all_tab_columns c
-                        LEFT JOIN
-                            all_col_comments col
-                            ON c.owner = col.owner
-                            AND c.table_name = col.table_name
-                            AND c.column_name = col.column_name
-                        LEFT JOIN
-                            all_tab_comments t
-                            ON c.owner = t.owner
-                            AND c.table_name = t.table_name
-                        WHERE
-                            c.owner = 'EDP'
-                    )
-                    SELECT DISTINCT * FROM main1
-                    ORDER BY table_name
-                """, connection).to_markdown()
-    except Exception as e:
-        connection.close()
-        return f"Error listing tables: {str(e)}"
 
 
 @staticmethod
@@ -267,7 +209,43 @@ def get_table_info(query: str) -> str:
     """
     connection = register_oracle()
     try:
-        return pd.read_sql_query(query, connection).to_markdown()
+        return pd.read_sql_query(query, connection)
     except Exception as e:
         connection.close()
         return f"Error listing tables: {str(e)}"
+
+@staticmethod
+def write_to_oracle(table_name, df):
+    import re
+
+    # Optional: sanitize column names
+    def quote_column(col):
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", col):
+            return f'"{col}"'
+        return col
+
+    columns = [quote_column(col) for col in df.columns]
+
+    # Prepare data for insertion
+    data_as_tuples = [tuple(row) for row in df.itertuples(index=False, name=None)]
+
+    connection = register_oracle()
+    oc = connection.cursor()
+
+    placeholders = ", ".join([f":{i+1}" for i in range(len(columns))])
+    insert_sql = f"INSERT INTO EDP.{table_name} ({', '.join(columns)}) VALUES ({placeholders})"
+
+    try:
+        oc.executemany(insert_sql, data_as_tuples)
+        connection.commit()
+        print("Data inserted successfully!")
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        connection.rollback()
+        raise
+    finally:
+        oc.close()
+        connection.close()
+
+
+ 
